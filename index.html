@@ -2,39 +2,46 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Calendario Personalizable</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario</title>
 
 <style>
 :root {
-  --accent-color: #2ecc71; /* Color por defecto */
-  --bg-color: #0e0e0e;
-  --card-color: #1b1b1b;
+  --accent-color: #2ecc71;
+  --bg-color: #0b0b0b;
+  --card-color: #1a1a1a;
   --text-color: #ffffff;
   --muted-text: #aaaaaa;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
+  margin: 0;
   background: var(--bg-color);
-  font-family: Arial, sans-serif;
+  font-family: system-ui, Arial, sans-serif;
   color: var(--text-color);
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
+  justify-content: center;
 }
 
 .calendar {
+  width: 340px;
   background: var(--card-color);
+  border-radius: 18px;
   padding: 20px;
-  border-radius: 16px;
-  width: 320px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
 .header button {
@@ -45,11 +52,170 @@ body {
   cursor: pointer;
 }
 
-.weekdays, .days {
+.header button:hover {
+  color: var(--accent-color);
+}
+
+.weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
+  font-size: 12px;
+  color: var(--muted-text);
+  margin-bottom: 8px;
 }
 
-.weekdays div {
-  color: var(--muted-te
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.days div {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.days div:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.selected {
+  background: var(--accent-color);
+  color: #000;
+  font-weight: 600;
+}
+
+.footer {
+  margin-top: 16px;
+  padding: 14px;
+  background: #111;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.color-picker {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+input[type="color"] {
+  background: none;
+  border: none;
+  width: 36px;
+  height: 24px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="calendar">
+  <div class="header">
+    <button id="prev">❮</button>
+    <div id="monthYear"></div>
+    <button id="next">❯</button>
+  </div>
+
+  <div class="weekdays">
+    <div>LU</div><div>MA</div><div>MI</div><div>JU</div>
+    <div>VI</div><div>SA</div><div>DO</div>
+  </div>
+
+  <div class="days" id="days"></div>
+
+  <div class="footer" id="footer"></div>
+
+  <div class="color-picker">
+    <span>Color principal</span>
+    <input type="color" value="#2ecc71" id="colorPicker">
+  </div>
+</div>
+
+<script>
+const monthYear = document.getElementById("monthYear");
+const daysContainer = document.getElementById("days");
+const footer = document.getElementById("footer");
+const colorPicker = document.getElementById("colorPicker");
+
+let currentDate = new Date();
+let selectedDate = new Date();
+
+const months = [
+  "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+function renderCalendar() {
+  daysContainer.innerHTML = "";
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  monthYear.textContent = `${months[month]} ${year}`;
+
+  let firstDay = new Date(year, month, 1).getDay();
+  firstDay = firstDay === 0 ? 7 : firstDay;
+
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 1; i < firstDay; i++) {
+    daysContainer.appendChild(document.createElement("div"));
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const cell = document.createElement("div");
+    cell.textContent = day;
+
+    if (
+      day === selectedDate.getDate() &&
+      month === selectedDate.getMonth() &&
+      year === selectedDate.getFullYear()
+    ) {
+      cell.classList.add("selected");
+    }
+
+    cell.onclick = () => {
+      selectedDate = new Date(year, month, day);
+      renderCalendar();
+    };
+
+    daysContainer.appendChild(cell);
+  }
+
+  footer.textContent =
+    selectedDate.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }) +
+    " — Hoy es un buen día. Disfruta tu tiempo.";
+}
+
+document.getElementById("prev").onclick = () => {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  renderCalendar();
+};
+
+document.getElementById("next").onclick = () => {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  renderCalendar();
+};
+
+colorPicker.oninput = e => {
+  document.documentElement.style.setProperty("--accent-color", e.target.value);
+};
+
+renderCalendar();
+</script>
+
+</body>
+</html>
