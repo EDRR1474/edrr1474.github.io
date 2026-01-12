@@ -25,7 +25,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.5s;
+  transition: background 0.5s, color 0.5s;
 }
 
 /* Dark/light mode based on system preference */
@@ -201,7 +201,7 @@ function renderCalendar() {
   monthYear.textContent = `${months[month]} ${year}`;
 
   let firstDay = new Date(year, month, 1).getDay();
-  firstDay = firstDay === 0 ? 7 : firstDay;
+  firstDay = firstDay === 0 ? 7 : firstDay; // Sunday fix
 
   const totalDays = new Date(year, month + 1, 0).getDate();
 
