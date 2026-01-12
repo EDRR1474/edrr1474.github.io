@@ -2,89 +2,121 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Calendario Personalizable</title>
+<title>Calendario</title>
 
 <style>
 body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f4f6f8;
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
     padding: 20px;
 }
 
 /* CONTENEDOR */
-.container {
+.wrapper {
     display: flex;
-    align-items: flex-start;
-    gap: 15px;
+    gap: 20px;
 }
 
 /* CALENDARIO */
-#calendar {
-    width: 320px;
-    padding: 15px;
-    border-radius: 12px;
-    background-color: #e3f2fd;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.calendar {
+    width: 330px;
+    background: #f8f4ee;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
-/* MES */
-#monthYear {
-    text-align: center;
-    font-weight: bold;
+/* HEADER */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
 }
 
-/* DIAS */
-.days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
+.header h2 {
+    margin: 0;
+    font-size: 22px;
 }
 
-.day {
-    height: 38px;
+.header span {
+    color: red;
+}
+
+/* CONTROLES */
+.controls {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+select {
+    padding: 3px;
+}
+
+/* TABLA */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    font-size: 12px;
+    padding: 5px;
+    background: #eee;
+}
+
+th.sun {
+    color: red;
+}
+
+td {
+    height: 40px;
+    border: 1px solid #ccc;
+    text-align: center;
     cursor: pointer;
+    position: relative;
+}
+
+td.sun {
+    color: red;
+}
+
+td.selected::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    background: yellow;
     border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: -1;
 }
 
-.day:hover {
-    background-color: rgba(0,0,0,0.08);
-}
-
-.selected {
-    background-color: yellow;
-}
-
-/* BOTON PALETA */
-#paletteBtn {
-    width: 34px;
-    height: 34px;
+/* PALETA */
+.palette {
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: linear-gradient(45deg, red, yellow, green, blue);
-    border: none;
     cursor: pointer;
-}
-
-#colorPicker {
-    display: none;
+    margin-top: 5px;
 }
 
 /* NOTAS */
 .notes {
-    width: 320px;
-    margin-top: 15px;
+    width: 330px;
 }
 
 .note-line {
-    border-bottom: 1px dashed #aaa;
+    border-bottom: 1px dashed #999;
     height: 22px;
     margin-bottom: 8px;
 }
 
-.note-line[contenteditable="true"]:focus {
+.note-line:focus {
     outline: none;
 }
 </style>
@@ -92,88 +124,133 @@ body {
 
 <body>
 
-<div class="container">
-    <div id="calendar">
-        <div id="monthYear"></div>
-        <div class="days" id="days"></div>
+<div class="wrapper">
+
+    <div class="calendar">
+        <div class="header">
+            <h2 id="title"></h2>
+            <div class="palette" id="palette"></div>
+            <input type="color" id="colorPicker" hidden>
+        </div>
+
+        <div class="controls">
+            <select id="monthSelect"></select>
+            <select id="yearSelect"></select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="sun">Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody id="calendarBody"></tbody>
+        </table>
     </div>
 
-    <button id="paletteBtn" title="Cambiar color"></button>
-    <input type="color" id="colorPicker">
+    <div class="notes" id="notes"></div>
+
 </div>
 
-<div class="notes" id="notes"></div>
-
 <script>
-const calendar = document.getElementById("calendar");
-const daysContainer = document.getElementById("days");
-const monthYear = document.getElementById("monthYear");
-const paletteBtn = document.getElementById("paletteBtn");
+const months = ["January","February","March","April","May","June",
+"July","August","September","October","November","December"];
+
+const title = document.getElementById("title");
+const monthSelect = document.getElementById("monthSelect");
+const yearSelect = document.getElementById("yearSelect");
+const body = document.getElementById("calendarBody");
+const notes = document.getElementById("notes");
+const palette = document.getElementById("palette");
 const colorPicker = document.getElementById("colorPicker");
-const notesContainer = document.getElementById("notes");
 
-const date = new Date();
-const month = date.getMonth();
-const year = date.getFullYear();
+let selectedCell = null;
+let circleColor = "yellow";
 
-const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-"Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-
-monthYear.textContent = `${months[month]} ${year}`;
-
-const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-let calendarColor = "#e3f2fd";
-let selectedDay = null;
-
-function circleColor() {
-    return calendarColor.toLowerCase() === "#ffff00" ? "#d6c800" : "yellow";
+for (let i = 0; i < 12; i++) {
+    monthSelect.innerHTML += `<option value="${i}">${months[i]}</option>`;
 }
 
-function loadNotes(day) {
-    notesContainer.innerHTML = "";
-    const saved = JSON.parse(localStorage.getItem("notes-"+day)) || ["","","",""];
-    saved.forEach((text, i) => {
+for (let y = 2020; y <= 2035; y++) {
+    yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+const today = new Date();
+monthSelect.value = today.getMonth();
+yearSelect.value = today.getFullYear();
+
+function drawCalendar() {
+    body.innerHTML = "";
+    notes.innerHTML = "";
+    selectedCell = null;
+
+    const m = +monthSelect.value;
+    const y = +yearSelect.value;
+
+    title.innerHTML = `${months[m]} <span>${y}</span>`;
+
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    let row = document.createElement("tr");
+    for (let i = 0; i < firstDay; i++) row.appendChild(document.createElement("td"));
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement("td");
+        cell.textContent = d;
+        if ((firstDay + d - 1) % 7 === 0) cell.classList.add("sun");
+
+        cell.onclick = () => selectDay(cell, d, m, y);
+
+        row.appendChild(cell);
+        if ((firstDay + d) % 7 === 0) {
+            body.appendChild(row);
+            row = document.createElement("tr");
+        }
+    }
+    body.appendChild(row);
+}
+
+function selectDay(cell, d, m, y) {
+    if (selectedCell) selectedCell.classList.remove("selected");
+    cell.classList.add("selected");
+    selectedCell = cell;
+
+    loadNotes(`${y}-${m}-${d}`);
+}
+
+function loadNotes(key) {
+    notes.innerHTML = "";
+    const saved = JSON.parse(localStorage.getItem(key)) || ["","","",""];
+    saved.forEach((t,i)=>{
         const line = document.createElement("div");
         line.className = "note-line";
         line.contentEditable = true;
-        line.textContent = text;
-        line.addEventListener("input", () => {
+        line.textContent = t;
+        line.oninput = () => {
             saved[i] = line.textContent;
-            localStorage.setItem("notes-"+day, JSON.stringify(saved));
-        });
-        notesContainer.appendChild(line);
+            localStorage.setItem(key, JSON.stringify(saved));
+        };
+        notes.appendChild(line);
     });
 }
 
-for (let i = 1; i <= daysInMonth; i++) {
-    const day = document.createElement("div");
-    day.textContent = i;
-    day.className = "day";
+palette.onclick = () => colorPicker.click();
 
-    day.addEventListener("click", () => {
-        document.querySelectorAll(".day").forEach(d => {
-            d.classList.remove("selected");
-            d.style.backgroundColor = "";
-        });
-        day.classList.add("selected");
-        day.style.backgroundColor = circleColor();
-        selectedDay = i;
-        loadNotes(i);
-    });
+colorPicker.oninput = e => {
+    circleColor = e.target.value;
+    document.documentElement.style.setProperty("--circle", circleColor);
+};
 
-    daysContainer.appendChild(day);
-}
-
-paletteBtn.addEventListener("click", () => colorPicker.click());
-
-colorPicker.addEventListener("input", e => {
-    calendarColor = e.target.value;
-    calendar.style.backgroundColor = calendarColor;
-    if (selectedDay) {
-        document.querySelector(".selected").style.backgroundColor = circleColor();
-    }
-});
+drawCalendar();
+monthSelect.onchange = drawCalendar;
+yearSelect.onchange = drawCalendar;
 </script>
 
 </body>
