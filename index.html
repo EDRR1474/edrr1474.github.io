@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calendario Personalizable</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+.container {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+/* Calendario */
+#calendar {
+    width: 300px;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #cce5ff;
+}
+
+/* Encabezado */
+#monthYear {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Días */
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.day {
+    text-align: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.day:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.selected {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+}
+
+/* Botón de color */
+#colorPicker {
+    height: 40px;
+    width: 40px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Notas */
+.notes {
+    margin-top: 20px;
+}
+
+.note-line {
+    border-bottom: 1px solid black;
+    margin-bottom: 10px;
+    min-height: 20px;
+}
+
+.note-line[contenteditable="true"]:focus {
+    outline: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div id="calendar">
+        <div id="monthYear"></div>
+        <div class="days" id="days"></div>
+    </div>
+
+    <!-- Botón para cambiar color -->
+    <input type="color" id="colorPicker" title="Cambiar color del calendario">
+</div>
+
+<!-- Notas -->
+<div class="notes">
+    <div class="note-line" contenteditable="true"></div>
+    <div class="note-line" contenteditable="true"></div>
+    <div class="note-line" contenteditable="true"></div>
+    <div class="note-line" contenteditable="true"></div>
+</div>
+
+<script>
+const calendar = document.getElementById("calendar");
+const daysContainer = document.getElementById("days");
+const monthYear = document.getElementById("monthYear");
+const colorPicker = document.getElementById("colorPicker");
+
+const date = new Date();
+const month = date.getMonth();
+const year = date.getFullYear();
+
+const months = [
+    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+monthYear.textContent = `${months[month]} ${year}`;
+
+const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+let calendarColor = "#cce5ff";
+
+function getUnderlineColor() {
+    if (calendarColor.toLowerCase() === "#ffff00" || calendarColor.toLowerCase() === "yellow") {
+        return "#c9b800"; // amarillo más oscuro
+    }
+    return "yellow";
+}
+
+for (let i = 1; i <= daysInMonth; i++) {
+    const day = document.createElement("div");
+    day.textContent = i;
+    day.classList.add("day");
+
+    day.addEventListener("click", () => {
+        day.classList.toggle("selected");
+        day.style.textDecorationColor = getUnderlineColor();
+    });
+
+    daysContainer.appendChild(day);
+}
+
+colorPicker.addEventListener("input", (e) => {
+    calendarColor = e.target.value;
+    calendar.style.backgroundColor = calendarColor;
+
+    document.querySelectorAll(".selected").forEach(d => {
+        d.style.textDecorationColor = getUnderlineColor();
+    });
+});
+</script>
+
+</body>
+</html>
