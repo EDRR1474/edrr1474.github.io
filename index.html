@@ -24,13 +24,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: background 0.5s, color 0.5s;
-}
-
-@media (prefers-color-scheme: dark) {
-  body { background: #0b0b0b; }
-}
-@media (prefers-color-scheme: light) {
-  body { background: #f0f0f0; color: #000; }
+  background: transparent;
 }
 
 .calendar {
@@ -182,7 +176,6 @@ function getRandomPhrase() {
   return motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
 }
 
-// Solo actualiza la frase del footer
 function updateFooter() {
   footer.textContent =
     selectedDate.toLocaleDateString("en-GB", {
@@ -210,23 +203,24 @@ function renderCalendar() {
     const cell = document.createElement("div");
     cell.textContent = day;
 
-    if (day === selectedDate.getDate() &&
-        month === selectedDate.getMonth() &&
-        year === selectedDate.getFullYear()) {
+    if (
+      day === selectedDate.getDate() &&
+      month === selectedDate.getMonth() &&
+      year === selectedDate.getFullYear()
+    ) {
       cell.classList.add("selected");
     }
 
     cell.onclick = () => {
       selectedDate = new Date(year, month, day);
-      updateFooter(); // solo aquí cambia la frase
-      renderCalendar(); // refresca la selección
+      updateFooter();
+      renderCalendar();
     };
 
     daysContainer.appendChild(cell);
   }
 }
 
-// Cambia frase automáticamente cada 20 segundos
 setInterval(updateFooter, 20000);
 
 document.getElementById("prev").onclick = () => {
@@ -239,13 +233,11 @@ document.getElementById("next").onclick = () => {
   renderCalendar();
 };
 
-// Cambiar color solo cambia el punto del día, NO la frase
 colorPicker.oninput = e => {
   document.documentElement.style.setProperty("--accent-color", e.target.value);
-  renderCalendar(); // solo refresca selección y punto
+  renderCalendar();
 };
 
-// Primer render
 renderCalendar();
 updateFooter();
 </script>
