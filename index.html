@@ -26,7 +26,6 @@ body {
   background: transparent;
 }
 
-/* CALENDAR */
 .calendar {
   width: 340px;
   background: var(--card-color);
@@ -34,7 +33,6 @@ body {
   padding: 20px;
 }
 
-/* HEADER */
 .header {
   display: flex;
   align-items: center;
@@ -50,7 +48,6 @@ body {
   cursor: pointer;
 }
 
-/* WEEKDAYS */
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -59,7 +56,6 @@ body {
   margin-bottom: 8px;
 }
 
-/* DAYS */
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -79,34 +75,37 @@ body {
   background: rgba(255,255,255,0.08);
 }
 
-/* TODAY */
 .today {
   background: var(--today-color);
   color: #000;
   font-weight: 600;
 }
 
-/* SELECTED (gray) */
 .selected {
   background: var(--selected-gray);
   color: #fff;
 }
 
-/* FOOTER */
-.footer {
+.footer-textarea {
   margin-top: 16px;
-  padding: 14px;
-  background: #111;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px;
   border-radius: 14px;
+  background: #111;
+  color: #fff;
   font-size: 14px;
+  border: none;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
-/* COLOR PICKERS */
 .color-picker {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: 13px;
 }
 
@@ -114,6 +113,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 28px;
 }
 
 input[type="color"] {
@@ -142,7 +142,8 @@ input[type="color"] {
 
   <div class="days" id="days"></div>
 
-  <div class="footer" id="footer"></div>
+  <!-- Cambié div por textarea para texto editable -->
+  <textarea id="footer" class="footer-textarea" placeholder="Write your note here..."></textarea>
 
   <div class="color-picker">
     <div class="color-row">
@@ -180,13 +181,13 @@ const months = [
   "July","August","September","October","November","December"
 ];
 
-function updateFooter() {
-  footer.textContent =
-    selectedDate.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
+// Función para mostrar la fecha en el textarea solo al iniciar o cambiar selección
+function updateFooterInitial() {
+  footer.value = selectedDate.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
 }
 
 function renderCalendar() {
@@ -223,7 +224,7 @@ function renderCalendar() {
 
     cell.onclick = () => {
       selectedDate = new Date(year, month, day);
-      updateFooter();
+      updateFooterInitial();
       renderCalendar();
     };
 
@@ -256,12 +257,14 @@ setInterval(() => {
     currentDate = new Date(today);
     selectedDate = new Date(today);
     renderCalendar();
-    updateFooter();
+    updateFooterInitial();
   }
 }, 60000);
 
+// Inicializa textarea con fecha actual al cargar la página
+updateFooterInitial();
 renderCalendar();
-updateFooter();
+
 </script>
 
 </body>
