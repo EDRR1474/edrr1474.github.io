@@ -32,7 +32,7 @@ body {
   background: var(--card-color);
   border-radius: 18px;
   padding: 20px;
-  box-shadow: none; /* ← sombra eliminada */
+  box-shadow: none;
   color: #fff;
 }
 
@@ -51,7 +51,9 @@ body {
   cursor: pointer;
 }
 
-.header button:hover { color: var(--accent-color); }
+.header button:hover {
+  color: var(--accent-color);
+}
 
 .weekdays {
   display: grid;
@@ -77,9 +79,11 @@ body {
   position: relative;
 }
 
-.days div:hover { background: rgba(255,255,255,0.08); }
+.days div:hover {
+  background: rgba(255,255,255,0.08);
+}
 
-/* Marcado para día seleccionado por usuario */
+/* Día seleccionado */
 .selected {
   background: var(--accent-color);
   color: #000;
@@ -94,7 +98,7 @@ body {
   font-size: 18px;
 }
 
-/* Marcado especial para el día actual */
+/* Día actual */
 .today {
   background: var(--accent-color);
   color: #000;
@@ -118,11 +122,13 @@ body {
   min-height: 40px;
 }
 
+/* Color pickers */
 .color-picker {
   margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
   align-items: center;
+  gap: 8px;
   font-size: 13px;
 }
 
@@ -156,7 +162,10 @@ input[type="color"] {
 
   <div class="color-picker">
     <span>Main Color</span>
-    <input type="color" value="#2ecc71" id="colorPicker" />
+    <input type="color" value="#2ecc71" id="colorPicker">
+
+    <span>Calendar Color</span>
+    <input type="color" value="#1a1a1a" id="bgPicker">
   </div>
 </div>
 
@@ -165,11 +174,11 @@ const monthYear = document.getElementById("monthYear");
 const daysContainer = document.getElementById("days");
 const footer = document.getElementById("footer");
 const colorPicker = document.getElementById("colorPicker");
+const bgPicker = document.getElementById("bgPicker");
 
 let currentDate = new Date();
 let selectedDate = new Date();
 
-// Guarda la fecha “hoy” sin horas para comparación
 function getToday() {
   const d = new Date();
   d.setHours(0,0,0,0);
@@ -194,7 +203,9 @@ const motivationalPhrases = [
 ];
 
 function getRandomPhrase() {
-  return motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+  return motivationalPhrases[
+    Math.floor(Math.random() * motivationalPhrases.length)
+  ];
 }
 
 function updateFooter() {
@@ -224,7 +235,6 @@ function renderCalendar() {
     const cell = document.createElement("div");
     cell.textContent = day;
 
-    // Marcar el día seleccionado por usuario
     if (
       day === selectedDate.getDate() &&
       month === selectedDate.getMonth() &&
@@ -233,7 +243,6 @@ function renderCalendar() {
       cell.classList.add("selected");
     }
 
-    // Marcar el día "hoy" SI está en el mes y año que se muestra
     if (
       day === today.getDate() &&
       month === today.getMonth() &&
@@ -252,23 +261,17 @@ function renderCalendar() {
   }
 }
 
-// Actualiza "today" y el calendario justo después de medianoche
 function updateToday() {
-  const now = new Date();
   const todayNew = getToday();
   if (todayNew.getTime() !== today.getTime()) {
     today = todayNew;
-
-    // También actualizar currentDate y selectedDate para que el calendario muestre el mes correcto
     currentDate = new Date(today);
     selectedDate = new Date(today);
-
     updateFooter();
     renderCalendar();
   }
 }
 
-// Intervalo que chequea cada minuto si cambió el día
 setInterval(updateToday, 60000);
 setInterval(updateFooter, 20000);
 
@@ -283,8 +286,17 @@ document.getElementById("next").onclick = () => {
 };
 
 colorPicker.oninput = e => {
-  document.documentElement.style.setProperty("--accent-color", e.target.value);
-  renderCalendar();
+  document.documentElement.style.setProperty(
+    "--accent-color",
+    e.target.value
+  );
+};
+
+bgPicker.oninput = e => {
+  document.documentElement.style.setProperty(
+    "--card-color",
+    e.target.value
+  );
 };
 
 renderCalendar();
