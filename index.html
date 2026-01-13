@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calendar</title>
+<title>Calendar with Daily Notes</title>
 
 <style>
 :root {
@@ -142,7 +142,6 @@ input[type="color"] {
 
   <div class="days" id="days"></div>
 
-  <!-- Textarea para que usuario escriba libremente -->
   <textarea id="footer" class="footer-textarea" placeholder="Write your notes here..."></textarea>
 
   <div class="color-picker">
@@ -160,6 +159,7 @@ input[type="color"] {
 <script>
 const monthYear = document.getElementById("monthYear");
 const daysContainer = document.getElementById("days");
+const footer = document.getElementById("footer");
 
 const todayPicker = document.getElementById("todayPicker");
 const bgPicker = document.getElementById("bgPicker");
@@ -180,6 +180,24 @@ const months = [
   "July","August","September","October","November","December"
 ];
 
+// Convierte fecha a string único (yyyy-mm-dd) para clave en localStorage
+function formatDateKey(date) {
+  return date.toISOString().slice(0,10);
+}
+
+// Guarda la nota del día actual en localStorage
+function saveNote() {
+  const key = formatDateKey(selectedDate);
+  const text = footer.value;
+  localStorage.setItem(key, text);
+}
+
+// Carga la nota guardada para una fecha, o vacío si no existe
+function loadNote(date) {
+  const key = formatDateKey(date);
+  return localStorage.getItem(key) || "";
+}
+
 function renderCalendar() {
   daysContainer.innerHTML = "";
   const year = currentDate.getFullYear();
@@ -187,7 +205,7 @@ function renderCalendar() {
   monthYear.textContent = `${months[month]} ${year}`;
 
   let firstDay = new Date(year, month, 1).getDay();
-  firstDay = firstDay === 0 ? 7 : firstDay;
+  firstDay = firstDay === 0 ? 7 : firstDay;  // Domingo=7 para calendario que inicia lunes
   const totalDays = new Date(year, month + 1, 0).getDate();
 
   for (let i = 1; i < firstDay; i++) {
@@ -213,8 +231,15 @@ function renderCalendar() {
     }
 
     cell.onclick = () => {
+      // Antes de cambiar día, guarda nota actual
+      saveNote();
+
+      // Cambia día seleccionado
       selectedDate = new Date(year, month, day);
-      // No actualizamos el textarea con fecha ni nada
+
+      // Carga nota del día nuevo
+      footer.value = loadNote(selectedDate);
+
       renderCalendar();
     };
 
@@ -231,12 +256,28 @@ bgPicker.oninput = e => {
 };
 
 document.getElementById("prev").onclick = () => {
+  // Guarda nota actual antes de cambiar mes
+  saveNote();
+
   currentDate.setMonth(currentDate.getMonth() - 1);
+
+  // Ajusta selectedDate al nuevo mes, día 1 (evitar día inválido)
+  selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+  // Carga nota del nuevo día seleccionado
+  footer.value = loadNote(selectedDate);
+
   renderCalendar();
 };
 
 document.getElementById("next").onclick = () => {
+  saveNote();
+
   currentDate.setMonth(currentDate.getMonth() + 1);
+
+  selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  footer.value = loadNote(selectedDate);
+
   renderCalendar();
 };
 
@@ -246,11 +287,19 @@ setInterval(() => {
     today = newToday;
     currentDate = new Date(today);
     selectedDate = new Date(today);
+
+    footer.value = loadNote(selectedDate);
+
     renderCalendar();
   }
 }, 60000);
 
+// Inicialización
+footer.value = loadNote(selectedDate);
 renderCalendar();
+
+// Guarda nota automáticamente cada vez que el usuario escribe algo
+footer.addEventListener("input", saveNote);
 
 </script>
 
