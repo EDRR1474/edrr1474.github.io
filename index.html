@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendar with Daily Notes</title>
-
 <style>
 :root {
   --today-color: #4fb37a;
@@ -35,7 +34,6 @@ body {
 
 .header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
 }
@@ -89,7 +87,7 @@ body {
 .footer-textarea {
   margin-top: 16px;
   width: 100%;
-  min-height: 60px;
+  min-height: 80px;
   padding: 10px;
   border-radius: 14px;
   background: #111;
@@ -125,7 +123,6 @@ input[type="color"] {
 }
 </style>
 </head>
-
 <body>
 
 <div class="calendar">
@@ -142,7 +139,7 @@ input[type="color"] {
 
   <div class="days" id="days"></div>
 
-  <textarea id="footer" class="footer-textarea" placeholder="Write your notes here..."></textarea>
+  <textarea id="footer" class="footer-textarea" placeholder="Write your note here..."></textarea>
 
   <div class="color-picker">
     <div class="color-row">
@@ -167,37 +164,33 @@ const bgPicker = document.getElementById("bgPicker");
 let currentDate = new Date();
 let selectedDate = new Date();
 
+// Obtener "hoy" sin horas
 function getToday() {
   const d = new Date();
   d.setHours(0,0,0,0);
   return d;
 }
-
 let today = getToday();
 
-const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
-];
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// Convierte fecha a string único (yyyy-mm-dd) para clave en localStorage
-function formatDateKey(date) {
-  return date.toISOString().slice(0,10);
+// Genera clave única para cada día
+function dateKey(date) {
+  return date.toISOString().split('T')[0]; // YYYY-MM-DD
 }
 
-// Guarda la nota del día actual en localStorage
+// Guardar nota
 function saveNote() {
-  const key = formatDateKey(selectedDate);
-  const text = footer.value;
-  localStorage.setItem(key, text);
+  const key = dateKey(selectedDate);
+  localStorage.setItem(key, footer.value);
 }
 
-// Carga la nota guardada para una fecha, o vacío si no existe
+// Cargar nota
 function loadNote(date) {
-  const key = formatDateKey(date);
-  return localStorage.getItem(key) || "";
+  return localStorage.getItem(dateKey(date)) || "";
 }
 
+// Renderiza el calendario
 function renderCalendar() {
   daysContainer.innerHTML = "";
   const year = currentDate.getFullYear();
@@ -205,9 +198,10 @@ function renderCalendar() {
   monthYear.textContent = `${months[month]} ${year}`;
 
   let firstDay = new Date(year, month, 1).getDay();
-  firstDay = firstDay === 0 ? 7 : firstDay;  // Domingo=7 para calendario que inicia lunes
+  firstDay = firstDay === 0 ? 7 : firstDay; // Sunday = 7
   const totalDays = new Date(year, month + 1, 0).getDate();
 
+  // Espacios en blanco para primeros días
   for (let i = 1; i < firstDay; i++) {
     daysContainer.appendChild(document.createElement("div"));
   }
@@ -216,30 +210,17 @@ function renderCalendar() {
     const cell = document.createElement("div");
     cell.textContent = day;
 
-    if (
-      day === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear()
-    ) {
+    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
       cell.classList.add("today");
-    } else if (
-      day === selectedDate.getDate() &&
-      month === selectedDate.getMonth() &&
-      year === selectedDate.getFullYear()
-    ) {
+    } 
+    if (day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
       cell.classList.add("selected");
     }
 
     cell.onclick = () => {
-      // Antes de cambiar día, guarda nota actual
-      saveNote();
-
-      // Cambia día seleccionado
+      saveNote(); // Guardar antes de cambiar de día
       selectedDate = new Date(year, month, day);
-
-      // Carga nota del día nuevo
-      footer.value = loadNote(selectedDate);
-
+      footer.value = loadNote(selectedDate); // Cargar nota del día nuevo
       renderCalendar();
     };
 
@@ -247,60 +228,44 @@ function renderCalendar() {
   }
 }
 
-todayPicker.oninput = e => {
-  document.documentElement.style.setProperty("--today-color", e.target.value);
-};
+// Cambiar color dinámicamente
+todayPicker.oninput = e => document.documentElement.style.setProperty("--today-color", e.target.value);
+bgPicker.oninput = e => document.documentElement.style.setProperty("--card-color", e.target.value);
 
-bgPicker.oninput = e => {
-  document.documentElement.style.setProperty("--card-color", e.target.value);
-};
-
+// Botones de mes
 document.getElementById("prev").onclick = () => {
-  // Guarda nota actual antes de cambiar mes
   saveNote();
-
   currentDate.setMonth(currentDate.getMonth() - 1);
-
-  // Ajusta selectedDate al nuevo mes, día 1 (evitar día inválido)
   selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-
-  // Carga nota del nuevo día seleccionado
   footer.value = loadNote(selectedDate);
-
   renderCalendar();
 };
 
 document.getElementById("next").onclick = () => {
   saveNote();
-
   currentDate.setMonth(currentDate.getMonth() + 1);
-
   selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   footer.value = loadNote(selectedDate);
-
   renderCalendar();
 };
 
+// Detectar cambio de día
 setInterval(() => {
   const newToday = getToday();
   if (newToday.getTime() !== today.getTime()) {
     today = newToday;
     currentDate = new Date(today);
     selectedDate = new Date(today);
-
     footer.value = loadNote(selectedDate);
-
     renderCalendar();
   }
 }, 60000);
 
-// Inicialización
+// Cargar nota inicial y escuchar cambios
 footer.value = loadNote(selectedDate);
-renderCalendar();
-
-// Guarda nota automáticamente cada vez que el usuario escribe algo
 footer.addEventListener("input", saveNote);
 
+renderCalendar();
 </script>
 
 </body>
