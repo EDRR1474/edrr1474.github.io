@@ -142,8 +142,8 @@ input[type="color"] {
 
   <div class="days" id="days"></div>
 
-  <!-- Cambié div por textarea para texto editable -->
-  <textarea id="footer" class="footer-textarea" placeholder="Write your note here..."></textarea>
+  <!-- Textarea para que usuario escriba libremente -->
+  <textarea id="footer" class="footer-textarea" placeholder="Write your notes here..."></textarea>
 
   <div class="color-picker">
     <div class="color-row">
@@ -160,7 +160,6 @@ input[type="color"] {
 <script>
 const monthYear = document.getElementById("monthYear");
 const daysContainer = document.getElementById("days");
-const footer = document.getElementById("footer");
 
 const todayPicker = document.getElementById("todayPicker");
 const bgPicker = document.getElementById("bgPicker");
@@ -180,15 +179,6 @@ const months = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December"
 ];
-
-// Función para mostrar la fecha en el textarea solo al iniciar o cambiar selección
-function updateFooterInitial() {
-  footer.value = selectedDate.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
-}
 
 function renderCalendar() {
   daysContainer.innerHTML = "";
@@ -224,7 +214,7 @@ function renderCalendar() {
 
     cell.onclick = () => {
       selectedDate = new Date(year, month, day);
-      updateFooterInitial();
+      // No actualizamos el textarea con fecha ni nada
       renderCalendar();
     };
 
@@ -257,12 +247,9 @@ setInterval(() => {
     currentDate = new Date(today);
     selectedDate = new Date(today);
     renderCalendar();
-    updateFooterInitial();
   }
 }, 60000);
 
-// Inicializa textarea con fecha actual al cargar la página
-updateFooterInitial();
 renderCalendar();
 
 </script>
