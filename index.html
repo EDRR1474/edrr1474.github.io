@@ -79,6 +79,7 @@ body {
 
 .days div:hover { background: rgba(255,255,255,0.08); }
 
+/* Marcado para día seleccionado por usuario */
 .selected {
   background: var(--accent-color);
   color: #000;
@@ -86,6 +87,21 @@ body {
 }
 
 .selected::after {
+  content: "•";
+  color: var(--accent-color);
+  position: absolute;
+  bottom: 6px;
+  font-size: 18px;
+}
+
+/* Marcado especial para el día actual */
+.today {
+  background: var(--accent-color);
+  color: #000;
+  font-weight: 600;
+}
+
+.today::after {
   content: "•";
   color: var(--accent-color);
   position: absolute;
@@ -153,12 +169,14 @@ const colorPicker = document.getElementById("colorPicker");
 let currentDate = new Date();
 let selectedDate = new Date();
 
-// Guardamos la última fecha (solo año-mes-día) en la que se hizo la selección automática
-let lastAutoSelectDate = new Date();
-lastAutoSelectDate.setHours(0,0,0,0);
+// Guarda la fecha “hoy” sin horas para comparación
+function getToday() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
 
-// Variable para saber si el usuario hizo una selección manual hoy
-let manualSelectionToday = false;
+let today = getToday();
 
 const months = [
   "January","February","March","April","May","June",
@@ -206,6 +224,7 @@ function renderCalendar() {
     const cell = document.createElement("div");
     cell.textContent = day;
 
+    // Marcar el día seleccionado por usuario
     if (
       day === selectedDate.getDate() &&
       month === selectedDate.getMonth() &&
@@ -214,9 +233,17 @@ function renderCalendar() {
       cell.classList.add("selected");
     }
 
+    // Marcar el día "hoy" SI está en el mes y año que se muestra
+    if (
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear()
+    ) {
+      cell.classList.add("today");
+    }
+
     cell.onclick = () => {
       selectedDate = new Date(year, month, day);
-      manualSelectionToday = true;
       updateFooter();
       renderCalendar();
     };
@@ -225,25 +252,24 @@ function renderCalendar() {
   }
 }
 
-function autoUpdateSelectedDate() {
+// Actualiza "today" y el calendario justo después de medianoche
+function updateToday() {
   const now = new Date();
-  now.setHours(0,0,0,0);
+  const todayNew = getToday();
+  if (todayNew.getTime() !== today.getTime()) {
+    today = todayNew;
 
-  if (now > lastAutoSelectDate) {
-    currentDate = new Date();
+    // También actualizar currentDate y selectedDate para que el calendario muestre el mes correcto
+    currentDate = new Date(today);
+    selectedDate = new Date(today);
 
-    if (!manualSelectionToday) {
-      selectedDate = new Date(currentDate);
-    }
-
-    lastAutoSelectDate = new Date(now);
     updateFooter();
     renderCalendar();
-    manualSelectionToday = false;
   }
 }
 
-setInterval(autoUpdateSelectedDate, 60000);
+// Intervalo que chequea cada minuto si cambió el día
+setInterval(updateToday, 60000);
 setInterval(updateFooter, 20000);
 
 document.getElementById("prev").onclick = () => {
