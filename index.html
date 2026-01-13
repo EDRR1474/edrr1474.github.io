@@ -28,17 +28,11 @@ body {
   transition: background 0.5s, color 0.5s;
 }
 
-/* Dark/light mode based on system preference */
 @media (prefers-color-scheme: dark) {
-  body {
-    background: #0b0b0b;
-  }
+  body { background: #0b0b0b; }
 }
 @media (prefers-color-scheme: light) {
-  body {
-    background: #f0f0f0;
-    color: #000;
-  }
+  body { background: #f0f0f0; color: #000; }
 }
 
 .calendar {
@@ -48,7 +42,7 @@ body {
   padding: 20px;
   box-shadow: 0 0 40px rgba(0,0,0,0.6);
   transition: background 0.5s, color 0.5s;
-  color: #fff; /* force text to white */
+  color: #fff;
 }
 
 .header {
@@ -61,7 +55,7 @@ body {
 .header button {
   background: none;
   border: none;
-  color: #fff; /* force white */
+  color: #fff;
   font-size: 20px;
   cursor: pointer;
 }
@@ -75,7 +69,7 @@ body {
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-size: 12px;
-  color: #fff; /* white */
+  color: #fff;
   margin-bottom: 8px;
 }
 
@@ -93,7 +87,7 @@ body {
   border-radius: 50%;
   cursor: pointer;
   position: relative;
-  color: #fff; /* white numbers */
+  color: #fff;
 }
 
 .days div:hover {
@@ -106,7 +100,6 @@ body {
   font-weight: 600;
 }
 
-/* Small dot below selected day */
 .selected::after {
   content: "•";
   color: var(--accent-color);
@@ -122,7 +115,7 @@ body {
   border-radius: 14px;
   font-size: 14px;
   min-height: 40px;
-  color: #fff; /* white */
+  color: #fff;
 }
 
 .color-picker {
@@ -131,7 +124,7 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #fff; /* white */
+  color: #fff;
 }
 
 input[type="color"] {
@@ -227,8 +220,7 @@ function renderCalendar() {
 
     cell.onclick = () => {
       selectedDate = new Date(year, month, day);
-      updateFooter();
-      renderCalendar();
+      renderCalendar(); // update selected day
     };
 
     daysContainer.appendChild(cell);
@@ -246,6 +238,9 @@ function updateFooter() {
     }) + " — " + getRandomPhrase();
 }
 
+// Automatically change phrase every 20 seconds
+setInterval(updateFooter, 20000);
+
 document.getElementById("prev").onclick = () => {
   currentDate.setMonth(currentDate.getMonth() - 1);
   renderCalendar();
@@ -258,7 +253,7 @@ document.getElementById("next").onclick = () => {
 
 colorPicker.oninput = e => {
   document.documentElement.style.setProperty("--accent-color", e.target.value);
-  renderCalendar(); // update dot color without changing phrase
+  renderCalendar(); // update dot color only
 };
 
 renderCalendar();
