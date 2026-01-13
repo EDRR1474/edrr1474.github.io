@@ -8,9 +8,9 @@
 <style>
 :root {
   --today-color: #2ecc71;
-  --selected-color: #3498db;
   --card-color: #1a1a1a;
   --text-color: #ffffff;
+  --selected-gray: #555555;
 }
 
 * { box-sizing: border-box; }
@@ -26,7 +26,6 @@ body {
   background: transparent;
 }
 
-/* CALENDAR */
 .calendar {
   width: 340px;
   background: var(--card-color);
@@ -34,7 +33,6 @@ body {
   padding: 20px;
 }
 
-/* HEADER */
 .header {
   display: flex;
   align-items: center;
@@ -50,7 +48,6 @@ body {
   cursor: pointer;
 }
 
-/* WEEKDAYS */
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -59,7 +56,6 @@ body {
   margin-bottom: 8px;
 }
 
-/* DAYS */
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -80,18 +76,18 @@ body {
   background: rgba(255,255,255,0.08);
 }
 
-/* TODAY */
+/* HOY */
 .today {
   background: var(--today-color);
   color: #000;
   font-weight: 600;
 }
 
-/* SELECTED */
+/* SELECCIONADO (gris fijo) */
 .selected {
-  background: var(--selected-color);
-  color: #000;
-  font-weight: 600;
+  background: var(--selected-gray);
+  color: #fff;
+  font-weight: 500;
 }
 
 /* FOOTER */
@@ -103,19 +99,13 @@ body {
   font-size: 14px;
 }
 
-/* COLOR PICKERS */
+/* COLOR PICKER */
 .color-picker {
   margin-top: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.color-row {
-  display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 13px;
 }
 
 input[type="color"] {
@@ -147,18 +137,8 @@ input[type="color"] {
   <div class="footer" id="footer"></div>
 
   <div class="color-picker">
-    <div class="color-row">
-      <span>Today</span>
-      <input type="color" id="todayPicker" value="#2ecc71">
-    </div>
-    <div class="color-row">
-      <span>Selected</span>
-      <input type="color" id="selectedPicker" value="#3498db">
-    </div>
-    <div class="color-row">
-      <span>Calendar</span>
-      <input type="color" id="bgPicker" value="#1a1a1a">
-    </div>
+    <span>Today Color</span>
+    <input type="color" id="todayPicker" value="#2ecc71">
   </div>
 </div>
 
@@ -166,10 +146,7 @@ input[type="color"] {
 const monthYear = document.getElementById("monthYear");
 const daysContainer = document.getElementById("days");
 const footer = document.getElementById("footer");
-
 const todayPicker = document.getElementById("todayPicker");
-const selectedPicker = document.getElementById("selectedPicker");
-const bgPicker = document.getElementById("bgPicker");
 
 let currentDate = new Date();
 let selectedDate = new Date();
@@ -240,12 +217,6 @@ function renderCalendar() {
 
 todayPicker.oninput = e =>
   document.documentElement.style.setProperty("--today-color", e.target.value);
-
-selectedPicker.oninput = e =>
-  document.documentElement.style.setProperty("--selected-color", e.target.value);
-
-bgPicker.oninput = e =>
-  document.documentElement.style.setProperty("--card-color", e.target.value);
 
 document.getElementById("prev").onclick = () => {
   currentDate.setMonth(currentDate.getMonth() - 1);
