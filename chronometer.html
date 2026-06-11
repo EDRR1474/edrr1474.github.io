@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro Profesional</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #1e293b; /* Gris oscuro neutro por defecto */
+            --bg-dark: #020617;
+            --text-main: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            /* Degradado de fondo sutil */
+            background-image: 
+                radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, var(--bg-dark) 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            /* Contenedor con degradado interno basado en el color seleccionado */
+            background: linear-gradient(145deg, var(--primary-color) 0%, #000000 150%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 1.25rem;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            transition: all 0.4s ease;
+            /* Sin sombras exteriores */
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-weight: 400;
+            letter-spacing: 0.15rem;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: var(--text-main);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+        }
+
+        #time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 500;
+            margin: 1.5rem 0;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+
+        button {
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 0.75rem;
+            padding: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Panel de configuración sólido y minimalista */
+        .config-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .config-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-main);
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <div class="content-wrapper">
+        <h2>Cronómetro</h2>
+        <div id="time">0h 0m 0s</div>
+
+        <div class="controls">
+            <button class="btn-start" onclick="start()" title="Iniciar">
+                <i data-lucide="play"></i>
+            </button>
+            <button class="btn-pause" onclick="pause()" title="Pausar">
+                <i data-lucide="pause"></i>
+            </button>
+            <button class="btn-reset" onclick="reset()" title="Reiniciar">
+                <i data-lucide="rotate-ccw"></i>
+            </button>
+        </div>
+
+        <div class="config-panel">
+            <span class="config-label">Personalizar Color</span>
+            <div class="color-picker-wrapper">
+                <input type="color" id="themePicker" oninput="updateTheme(this.value)" onchange="saveTheme(this.value)">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- LÓGICA DE PERSONALIZACIÓN Y PERSISTENCIA ---
+    function updateTheme(color) {
+        document.documentElement.style.setProperty('--primary-color', color);
+        
+        // Calcular brillo para contraste de texto
+        const r = parseInt(color.substr(1,2), 16);
+        const g = parseInt(color.substr(3,2), 16);
+        const b = parseInt(color.substr(5,2), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        
+        const textColor = brightness > 180 ? '#0f172a' : '#ffffff';
+        document.documentElement.style.setProperty('--text-main', textColor);
+    }
+
+    function saveTheme(color) {
+        localStorage.setItem("userThemeColor", color);
+    }
+
+    function loadTheme() {
+        // Color por defecto: Gris oscuro neutro (#1e293b)
+        const savedColor = localStorage.getItem("userThemeColor") || '#1e293b';
+        document.getElementById('themePicker').value = savedColor;
+        updateTheme(savedColor);
+    }
+
+    // --- LÓGICA ORIGINAL PRESERVADA ---
+    let interval = null;
+
+    function getStart() { return Number(localStorage.getItem("startTime")); }
+    function getElapsed() { return Number(localStorage.getItem("elapsed") || 0); }
+    function isRunning() { return localStorage.getItem("running") === "true"; }
+
+    function setStart(t) { localStorage.setItem("startTime", t); }
+    function setElapsed(t) { localStorage.setItem("elapsed", t); }
+
+    function setRunning(v) {
+      localStorage.setItem("running", v);
+    }
+
+    function clearAll() {
+      localStorage.removeItem("startTime");
+      localStorage.removeItem("elapsed");
+      localStorage.removeItem("running");
+    }
+
+    function getTime() {
+      const start = getStart();
+      const elapsed = getElapsed();
+      if (start) return elapsed + (Date.now() - start);
+      return elapsed;
+    }
+
+    function update() {
+      const sec = Math.floor(getTime() / 1000);
+      document.getElementById("time").innerText = format(sec);
+    }
+
+    function format(s) {
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${h}h ${m}m ${sec}s`;
+    }
+
+    function start() {
+      if (!getStart()) setStart(Date.now());
+      setRunning(true);
+      if (!interval) interval = setInterval(update, 1000);
+      update();
+    }
+
+    function pause() {
+      const startVal = getStart();
+      if (startVal) {
+        const elapsed = getElapsed();
+        const newElapsed = elapsed + (Date.now() - startVal);
+        setElapsed(newElapsed);
+        localStorage.removeItem("startTime");
+      }
+      setRunning(false);
+      clearInterval(interval);
+      interval = null;
+      update();
+    }
+
+    function reset() {
+      clearInterval(interval);
+      interval = null;
+      clearAll();
+      document.getElementById("time").innerText = "0h 0m 0s";
+    }
+
+    window.onload = function () {
+      lucide.createIcons();
+      loadTheme();
+      if (isRunning()) {
+        if (getStart()) {
+            interval = setInterval(update, 1000);
+        }
+      }
+      update();
+    };
+</script>
+
+</body>
+</html>
